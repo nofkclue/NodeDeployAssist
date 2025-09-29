@@ -2,13 +2,9 @@ import {
   type DiagnosticReport, 
   type InsertDiagnosticReport, 
   type SystemCheck, 
-  type InsertSystemCheck,
-  diagnosticReports,
-  systemChecks
+  type InsertSystemCheck
 } from "@shared/schema";
 import { randomUUID } from "crypto";
-import { db } from "./db";
-import { eq, desc } from "drizzle-orm";
 
 export interface IStorage {
   // Diagnostic Reports
@@ -20,49 +16,6 @@ export interface IStorage {
   // System Checks
   createSystemCheck(check: InsertSystemCheck): Promise<SystemCheck>;
   getSystemChecksByReportId(reportId: string): Promise<SystemCheck[]>;
-}
-
-export class DatabaseStorage implements IStorage {
-  async createDiagnosticReport(insertReport: InsertDiagnosticReport): Promise<DiagnosticReport> {
-    const [report] = await db
-      .insert(diagnosticReports)
-      .values(insertReport)
-      .returning();
-    return report;
-  }
-
-  async getDiagnosticReport(id: string): Promise<DiagnosticReport | undefined> {
-    const [report] = await db.select().from(diagnosticReports).where(eq(diagnosticReports.id, id));
-    return report || undefined;
-  }
-
-  async updateDiagnosticReport(id: string, updates: Partial<DiagnosticReport>): Promise<DiagnosticReport> {
-    const [report] = await db
-      .update(diagnosticReports)
-      .set(updates)
-      .where(eq(diagnosticReports.id, id))
-      .returning();
-    if (!report) {
-      throw new Error(`Diagnostic report with id ${id} not found`);
-    }
-    return report;
-  }
-
-  async getAllDiagnosticReports(): Promise<DiagnosticReport[]> {
-    return await db.select().from(diagnosticReports).orderBy(desc(diagnosticReports.timestamp));
-  }
-
-  async createSystemCheck(insertCheck: InsertSystemCheck): Promise<SystemCheck> {
-    const [check] = await db
-      .insert(systemChecks)
-      .values(insertCheck)
-      .returning();
-    return check;
-  }
-
-  async getSystemChecksByReportId(reportId: string): Promise<SystemCheck[]> {
-    return await db.select().from(systemChecks).where(eq(systemChecks.reportId, reportId));
-  }
 }
 
 export class MemStorage implements IStorage {
@@ -135,4 +88,4 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new DatabaseStorage();
+export const storage = new MemStorage();
