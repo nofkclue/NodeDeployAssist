@@ -148,28 +148,28 @@ export default function Home() {
             {currentStep === "system" && (
               <SystemCheck 
                 reportId={currentReportId} 
-                data={(currentReport as DiagnosticReport)?.systemInfo} 
+                data={currentReport?.systemInfo || null} 
               />
             )}
             
             {currentStep === "network" && (
               <NetworkCheck 
                 reportId={currentReportId} 
-                data={(currentReport as DiagnosticReport)?.networkTests} 
+                data={currentReport?.networkTests || null} 
               />
             )}
             
             {currentStep === "permissions" && (
               <PermissionsCheck 
                 reportId={currentReportId} 
-                data={(currentReport as DiagnosticReport)?.permissionChecks} 
+                data={currentReport?.permissionChecks || null} 
               />
             )}
             
             {currentStep === "dependencies" && (
               <DependenciesCheck 
                 reportId={currentReportId} 
-                data={(currentReport as DiagnosticReport)?.dependencyAnalysis} 
+                data={currentReport?.dependencyAnalysis || null} 
               />
             )}
             
@@ -182,8 +182,8 @@ export default function Home() {
             {currentStep === "logs" && (
               <LogsReport 
                 reportId={currentReportId} 
-                logs={(currentReport as DiagnosticReport)?.logs || undefined} 
-                aiReport={(currentReport as DiagnosticReport)?.aiReport || undefined} 
+                logs={currentReport?.logs || null} 
+                aiReport={currentReport?.aiReport || null} 
               />
             )}
 
