@@ -1,0 +1,221 @@
+import type { Express } from "express";
+import { createServer, type Server } from "http";
+import { storage } from "./storage";
+import { diagnosticsService } from "./services/diagnostics";
+import WebSocket, { WebSocketServer } from "ws";
+import { z } from "zod";
+
+export async function registerRoutes(app: Express): Promise<Server> {
+  const httpServer = createServer(app);
+
+  // WebSocket server for real-time updates
+  const wss = new WebSocketServer({ server: httpServer });
+
+  wss.on('connection', (ws) => {
+    console.log('WebSocket client connected');
+    
+    ws.on('close', () => {
+      console.log('WebSocket client disconnected');
+    });
+  });
+
+  // Broadcast progress updates to all connected clients
+  const broadcastProgress = (reportId: string, progress: number, message: string) => {
+    wss.clients.forEach(client => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({
+          type: 'progress',
+          reportId,
+          progress,
+          message,
+        }));
+      }
+    });
+  };
+
+  // Start new diagnosis
+  app.post("/api/diagnosis", async (req, res) => {
+    try {
+      const report = await storage.createDiagnosticReport({
+        status: "running",
+        progress: 0,
+        systemInfo: null,
+        networkTests: null,
+        permissionChecks: null,
+        dependencyAnalysis: null,
+        logs: "",
+        aiReport: null,
+      });
+
+      // Run diagnosis in background
+      setImmediate(async () => {
+        try {
+          broadcastProgress(report.id, 10, "Systemumgebung wird überprüft...");
+          
+          const systemInfo = await diagnosticsService.getSystemInfo();
+          await storage.updateDiagnosticReport(report.id, {
+            systemInfo: systemInfo as any,
+            progress: 25,
+          });
+          broadcastProgress(report.id, 25, "Netzwerkverbindung wird getestet...");
+
+          const networkTests = await diagnosticsService.testNetworkConnectivity();
+          await storage.updateDiagnosticReport(report.id, {
+            networkTests: networkTests as any,
+            progress: 50,
+          });
+          broadcastProgress(report.id, 50, "Dateiberechtigungen werden geprüft...");
+
+          const permissionChecks = await diagnosticsService.checkPermissions();
+          await storage.updateDiagnosticReport(report.id, {
+            permissionChecks: permissionChecks as any,
+            progress: 75,
+          });
+          broadcastProgress(report.id, 75, "Abhängigkeiten werden analysiert...");
+
+          const dependencyAnalysis = await diagnosticsService.analyzeDependencies();
+          
+          const fullResult = await diagnosticsService.runFullDiagnosis();
+          const aiReport = diagnosticsService.generateAIReport(fullResult);
+
+          await storage.updateDiagnosticReport(report.id, {
+            dependencyAnalysis: dependencyAnalysis as any,
+            logs: fullResult.logs.join("\n"),
+            aiReport,
+            status: "completed",
+            progress: 100,
+          });
+          
+          broadcastProgress(report.id, 100, "Diagnose abgeschlossen");
+        } catch (error) {
+          await storage.updateDiagnosticReport(report.id, {
+            status: "failed",
+            logs: `Error: ${error}`,
+          });
+          broadcastProgress(report.id, 100, `Fehler: ${error}`);
+        }
+      });
+
+      res.json(report);
+    } catch (error) {
+      res.status(500).json({ message: `Failed to start diagnosis: ${error}` });
+    }
+  });
+
+  // Get diagnosis report
+  app.get("/api/diagnosis/:id", async (req, res) => {
+    try {
+      const report = await storage.getDiagnosticReport(req.params.id);
+      if (!report) {
+        return res.status(404).json({ message: "Report not found" });
+      }
+      res.json(report);
+    } catch (error) {
+      res.status(500).json({ message: `Failed to get report: ${error}` });
+    }
+  });
+
+  // Get all diagnosis reports
+  app.get("/api/diagnosis", async (req, res) => {
+    try {
+      const reports = await storage.getAllDiagnosticReports();
+      res.json(reports);
+    } catch (error) {
+      res.status(500).json({ message: `Failed to get reports: ${error}` });
+    }
+  });
+
+  // Run individual system check
+  app.post("/api/diagnosis/:id/system-check", async (req, res) => {
+    try {
+      const systemInfo = await diagnosticsService.getSystemInfo();
+      
+      await storage.updateDiagnosticReport(req.params.id, {
+        systemInfo: systemInfo as any,
+      });
+
+      res.json(systemInfo);
+    } catch (error) {
+      res.status(500).json({ message: `System check failed: ${error}` });
+    }
+  });
+
+  // Run network tests
+  app.post("/api/diagnosis/:id/network-check", async (req, res) => {
+    try {
+      const networkTests = await diagnosticsService.testNetworkConnectivity();
+      
+      await storage.updateDiagnosticReport(req.params.id, {
+        networkTests: networkTests as any,
+      });
+
+      res.json(networkTests);
+    } catch (error) {
+      res.status(500).json({ message: `Network check failed: ${error}` });
+    }
+  });
+
+  // Run permission checks
+  app.post("/api/diagnosis/:id/permission-check", async (req, res) => {
+    try {
+      const permissionChecks = await diagnosticsService.checkPermissions();
+      
+      await storage.updateDiagnosticReport(req.params.id, {
+        permissionChecks: permissionChecks as any,
+      });
+
+      res.json(permissionChecks);
+    } catch (error) {
+      res.status(500).json({ message: `Permission check failed: ${error}` });
+    }
+  });
+
+  // Run dependency analysis
+  app.post("/api/diagnosis/:id/dependency-check", async (req, res) => {
+    try {
+      const dependencyAnalysis = await diagnosticsService.analyzeDependencies();
+      
+      await storage.updateDiagnosticReport(req.params.id, {
+        dependencyAnalysis: dependencyAnalysis as any,
+      });
+
+      res.json(dependencyAnalysis);
+    } catch (error) {
+      res.status(500).json({ message: `Dependency check failed: ${error}` });
+    }
+  });
+
+  // Export logs
+  app.get("/api/diagnosis/:id/export-logs", async (req, res) => {
+    try {
+      const report = await storage.getDiagnosticReport(req.params.id);
+      if (!report) {
+        return res.status(404).json({ message: "Report not found" });
+      }
+
+      res.setHeader('Content-Type', 'text/plain');
+      res.setHeader('Content-Disposition', `attachment; filename="diagnosis-${report.id}.log"`);
+      res.send(report.logs || "No logs available");
+    } catch (error) {
+      res.status(500).json({ message: `Export failed: ${error}` });
+    }
+  });
+
+  // Export AI report
+  app.get("/api/diagnosis/:id/export-ai-report", async (req, res) => {
+    try {
+      const report = await storage.getDiagnosticReport(req.params.id);
+      if (!report) {
+        return res.status(404).json({ message: "Report not found" });
+      }
+
+      res.setHeader('Content-Type', 'text/plain');
+      res.setHeader('Content-Disposition', `attachment; filename="ai-report-${report.id}.txt"`);
+      res.send(report.aiReport || "No AI report available");
+    } catch (error) {
+      res.status(500).json({ message: `Export failed: ${error}` });
+    }
+  });
+
+  return httpServer;
+}
