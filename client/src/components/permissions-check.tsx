@@ -70,7 +70,7 @@ export default function PermissionsCheck({ reportId, data }: PermissionsCheckPro
           <div className="border border-border rounded-lg p-4">
             <h3 className="font-medium mb-3">Verzeichnisstruktur</h3>
             <div className="bg-gray-900 text-gray-100 p-4 rounded font-mono text-sm overflow-x-auto">
-              <pre>📁 {process.cwd()}/
+              <pre>📁 /app/
 {data.directoryStructure.map((item, index) => (
 `├── ${getFileIcon(item.path)} ${item.path} ${item.exists ? `✓ (${item.permissions})` : '✗ nicht gefunden'}`
 )).join('\n')}
