@@ -8,8 +8,11 @@ import { z } from "zod";
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
 
-  // WebSocket server for real-time updates
-  const wss = new WebSocketServer({ server: httpServer });
+  // WebSocket server for real-time updates - use specific path to avoid conflict with Vite
+  const wss = new WebSocketServer({ 
+    server: httpServer,
+    path: '/ws/diagnostics'
+  });
 
   wss.on('connection', (ws) => {
     console.log('WebSocket client connected');

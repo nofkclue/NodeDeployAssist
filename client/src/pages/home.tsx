@@ -24,7 +24,7 @@ export default function Home() {
   // WebSocket connection for real-time updates
   useEffect(() => {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const ws = new WebSocket(`${protocol}//${window.location.host}`);
+    const ws = new WebSocket(`${protocol}//${window.location.host}/ws/diagnostics`);
     
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
