@@ -97,3 +97,23 @@ export type DependencyAnalysis = {
     latest: string;
   }>;
 };
+
+// Fix suggestions types
+export type FixSuggestion = {
+  id: string;
+  category: 'security' | 'performance' | 'compatibility' | 'configuration';
+  title: string;
+  description: string;
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  command?: string;
+  isExecutable: boolean;
+  estimatedTime: string;
+  impact: string;
+};
+
+export type FixExecutionResult = {
+  success: boolean;
+  output: string;
+  error?: string;
+  duration: number;
+};

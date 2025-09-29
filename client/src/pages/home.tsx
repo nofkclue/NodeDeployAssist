@@ -13,6 +13,7 @@ import PermissionsCheck from "@/components/permissions-check";
 import DependenciesCheck from "@/components/dependencies-check";
 import LogsReport from "@/components/logs-report";
 import QuickActions from "@/components/quick-actions";
+import { FixSuggestions } from "@/components/fix-suggestions";
 
 export default function Home() {
   const [currentReportId, setCurrentReportId] = useState<string | null>(null);
@@ -147,36 +148,42 @@ export default function Home() {
             {currentStep === "system" && (
               <SystemCheck 
                 reportId={currentReportId} 
-                data={currentReport?.systemInfo} 
+                data={(currentReport as DiagnosticReport)?.systemInfo} 
               />
             )}
             
             {currentStep === "network" && (
               <NetworkCheck 
                 reportId={currentReportId} 
-                data={currentReport?.networkTests} 
+                data={(currentReport as DiagnosticReport)?.networkTests} 
               />
             )}
             
             {currentStep === "permissions" && (
               <PermissionsCheck 
                 reportId={currentReportId} 
-                data={currentReport?.permissionChecks} 
+                data={(currentReport as DiagnosticReport)?.permissionChecks} 
               />
             )}
             
             {currentStep === "dependencies" && (
               <DependenciesCheck 
                 reportId={currentReportId} 
-                data={currentReport?.dependencyAnalysis} 
+                data={(currentReport as DiagnosticReport)?.dependencyAnalysis} 
+              />
+            )}
+            
+            {currentStep === "fixes" && (
+              <FixSuggestions 
+                reportId={currentReportId || undefined}
               />
             )}
             
             {currentStep === "logs" && (
               <LogsReport 
                 reportId={currentReportId} 
-                logs={currentReport?.logs} 
-                aiReport={currentReport?.aiReport} 
+                logs={(currentReport as DiagnosticReport)?.logs || undefined} 
+                aiReport={(currentReport as DiagnosticReport)?.aiReport || undefined} 
               />
             )}
 

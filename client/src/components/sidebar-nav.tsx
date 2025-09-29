@@ -1,4 +1,4 @@
-import { Monitor, Wifi, Shield, Package, FileText } from "lucide-react";
+import { Monitor, Wifi, Shield, Package, FileText, Wrench } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface SidebarNavProps {
@@ -14,6 +14,7 @@ export default function SidebarNav({ currentStep, onStepChange, progress, progre
     { id: "network", label: "Netzwerk & Ports", icon: Wifi },
     { id: "permissions", label: "Berechtigungen", icon: Shield },
     { id: "dependencies", label: "Dependencies", icon: Package },
+    { id: "fixes", label: "Lösungsvorschläge", icon: Wrench },
     { id: "logs", label: "Logs & Berichte", icon: FileText },
   ];
 

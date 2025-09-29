@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { diagnosticsService } from "./services/diagnostics";
+import { fixSuggestionsService } from "./services/fix-suggestions";
 import WebSocket, { WebSocketServer } from "ws";
 import { z } from "zod";
 
@@ -217,6 +218,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.send(report.aiReport || "No AI report available");
     } catch (error) {
       res.status(500).json({ message: `Export failed: ${error}` });
+    }
+  });
+
+  // Get fix suggestions for a diagnostic report
+  app.get("/api/diagnosis/:id/fix-suggestions", async (req, res) => {
+    try {
+      const report = await storage.getDiagnosticReport(req.params.id);
+      if (!report) {
+        return res.status(404).json({ message: "Report not found" });
+      }
+
+      const suggestions = fixSuggestionsService.generateFixSuggestions(report);
+      res.json(suggestions);
+    } catch (error) {
+      res.status(500).json({ message: `Failed to generate fix suggestions: ${error}` });
+    }
+  });
+
+  // Execute a fix suggestion
+  app.post("/api/diagnosis/:id/execute-fix", async (req, res) => {
+    try {
+      // Validate request body
+      const executeFixSchema = z.object({
+        suggestionId: z.string().min(1, "Suggestion ID is required")
+      });
+      
+      const { suggestionId } = executeFixSchema.parse(req.body);
+      
+      const report = await storage.getDiagnosticReport(req.params.id);
+      if (!report) {
+        return res.status(404).json({ message: "Report not found" });
+      }
+
+      // Only allow execution on completed reports
+      if (report.status !== "completed") {
+        return res.status(400).json({ message: "Can only execute fixes on completed diagnoses" });
+      }
+
+      const suggestions = fixSuggestionsService.generateFixSuggestions(report);
+      const suggestion = suggestions.find(s => s.id === suggestionId);
+      
+      if (!suggestion) {
+        return res.status(404).json({ message: "Fix suggestion not found" });
+      }
+
+      if (!suggestion.isExecutable) {
+        return res.status(400).json({ message: "This fix suggestion cannot be executed automatically" });
+      }
+
+      const result = await fixSuggestionsService.executeFixSuggestion(suggestion);
+      res.json(result);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid request", errors: error.errors });
+      }
+      res.status(500).json({ message: `Failed to execute fix: ${error}` });
     }
   });
 
