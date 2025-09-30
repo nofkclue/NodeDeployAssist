@@ -70,8 +70,19 @@ export default function SystemCheck({ reportId, data }: SystemCheckProps) {
     {
       title: "NPM Version",
       value: data.npmVersion,
-      status: (data.npmVersion.startsWith('8.') ? "warning" : "success") as 'warning' | 'success',
-      message: data.npmVersion.startsWith('8.') ? "Version 9.x empfohlen" : "Aktuelle Version"
+      status: (
+        data.npmVersion.includes('Fehler') || data.npmVersion.includes('nicht gefunden') || data.npmVersion.includes('command not found')
+          ? "error"
+          : data.npmVersion.startsWith('8.')
+          ? "warning"
+          : "success"
+      ) as 'error' | 'warning' | 'success',
+      message: 
+        data.npmVersion.includes('Fehler') || data.npmVersion.includes('nicht gefunden') || data.npmVersion.includes('command not found')
+          ? data.npmVersion
+          : data.npmVersion.startsWith('8.')
+          ? "Version 9.x empfohlen"
+          : "Aktuelle Version"
     },
     {
       title: "Verfügbarer Speicher",
