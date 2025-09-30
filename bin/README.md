@@ -4,6 +4,8 @@ Dieses CLI-Tool hilft bei der Diagnose von Deployment-Problemen **bevor** die An
 
 ## Installation & Build
 
+### Option A: Per SSH (Standard)
+
 ```bash
 # 1. Dependencies installieren
 npm install
@@ -12,10 +14,34 @@ npm install
 bash build-cli.sh
 ```
 
+### Option B: Über Plesk/Control Panel (ohne SSH)
+
+Wenn Node/NPM nicht per SSH verfügbar sind:
+
+**1. Dependencies installieren:**
+- In Plesk unter "Node.js" → "NPM Install"
+- Oder Run Script → `install`
+
+**2. CLI bauen:**
+- Fügen Sie in `package.json` unter `"scripts"` hinzu:
+  ```json
+  "build:cli": "node_modules/.bin/esbuild bin/preflight.ts --bundle --platform=node --format=esm --outfile=dist/bin/preflight.js --packages=external"
+  ```
+- In Plesk: Run Script → `build:cli`
+
+**3. Diagnose ausführen:**
+- Fügen Sie in `package.json` unter `"scripts"` hinzu:
+  ```json
+  "preflight": "node dist/bin/preflight.js check",
+  "preflight:report": "node dist/bin/preflight.js report"
+  ```
+- In Plesk: Run Script → `preflight`
+
 ## Verwendung
 
 ### Auf Ihrem Server (Produktion):
 
+**Option A: Per SSH**
 ```bash
 # Schnelle Diagnose
 ./preflight.sh check
@@ -31,10 +57,29 @@ bash build-cli.sh
 
 # JSON-Ausgabe (zum Kopieren/Weiterverarbeiten)
 ./preflight.sh check --json
-
-# Oder direkt mit node:
-node dist/bin/preflight.js check
 ```
+
+**Option B: Über Plesk/Control Panel (ohne SSH)**
+
+Wenn Node nicht per SSH verfügbar ist, führen Sie direkt aus:
+```bash
+# In Plesk Terminal oder als NPM-Skript
+node dist/bin/preflight.js check
+node dist/bin/preflight.js report
+node dist/bin/preflight.js detect-host
+node dist/bin/preflight.js capture
+```
+
+Oder fügen Sie NPM-Skripte in `package.json` hinzu:
+```json
+"scripts": {
+  "preflight": "node dist/bin/preflight.js check",
+  "preflight:report": "node dist/bin/preflight.js report",
+  "preflight:detect": "node dist/bin/preflight.js detect-host",
+  "preflight:capture": "node dist/bin/preflight.js capture"
+}
+```
+Dann in Plesk: Run Script → `preflight`
 
 ### In der Entwicklung (mit TypeScript):
 

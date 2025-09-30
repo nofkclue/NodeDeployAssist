@@ -83,33 +83,57 @@ export function GettingStarted({ open, onOpenChange }: GettingStartedProps) {
               <CardContent className="space-y-4">
                 <div>
                   <h4 className="font-semibold mb-2">Installation & Build</h4>
-                  <pre className="bg-muted p-3 rounded-md text-sm overflow-x-auto">
-                    <code>{`# 1. Dependencies installieren
+                  
+                  <div className="mb-3">
+                    <p className="text-sm font-medium mb-2">Option A: Per SSH</p>
+                    <pre className="bg-muted p-3 rounded-md text-sm overflow-x-auto">
+                      <code>{`# 1. Dependencies installieren
 npm install
 
 # 2. CLI bauen
 bash build-cli.sh`}</code>
-                  </pre>
+                    </pre>
+                  </div>
+
+                  <div className="bg-purple-50 dark:bg-purple-950 p-3 rounded-md">
+                    <p className="text-sm font-medium mb-2">Option B: Über Plesk/Control Panel</p>
+                    <p className="text-sm text-muted-foreground mb-2">Wenn Node/NPM nicht per SSH verfügbar:</p>
+                    <ol className="text-xs text-muted-foreground space-y-1 list-decimal list-inside">
+                      <li>In Plesk unter "Node.js" → "NPM Install"</li>
+                      <li>Fügen Sie in package.json hinzu: <code className="bg-muted px-1">"build:cli": "node_modules/.bin/esbuild bin/preflight.ts --bundle --platform=node --format=esm --outfile=dist/bin/preflight.js --packages=external"</code></li>
+                      <li>In Plesk: Run Script → "build:cli"</li>
+                    </ol>
+                  </div>
                 </div>
 
                 <div>
                   <h4 className="font-semibold mb-2">Wichtigste Befehle</h4>
-                  <div className="space-y-2">
-                    <div className="bg-muted p-3 rounded-md">
-                      <code className="text-sm">./preflight.sh check</code>
-                      <p className="text-xs text-muted-foreground mt-1">Schnelle Diagnose</p>
+                  
+                  <div className="mb-3">
+                    <p className="text-sm font-medium mb-2">Per SSH:</p>
+                    <div className="space-y-2">
+                      <div className="bg-muted p-3 rounded-md">
+                        <code className="text-sm">./preflight.sh check</code>
+                        <p className="text-xs text-muted-foreground mt-1">Schnelle Diagnose</p>
+                      </div>
+                      <div className="bg-muted p-3 rounded-md">
+                        <code className="text-sm">./preflight.sh report</code>
+                        <p className="text-xs text-muted-foreground mt-1">Detaillierter Bericht</p>
+                      </div>
                     </div>
-                    <div className="bg-muted p-3 rounded-md">
-                      <code className="text-sm">./preflight.sh report</code>
-                      <p className="text-xs text-muted-foreground mt-1">Detaillierter Bericht</p>
-                    </div>
-                    <div className="bg-muted p-3 rounded-md">
-                      <code className="text-sm">./preflight.sh detect-host</code>
-                      <p className="text-xs text-muted-foreground mt-1">Hosting-Umgebung erkennen</p>
-                    </div>
-                    <div className="bg-muted p-3 rounded-md">
-                      <code className="text-sm">./preflight.sh capture</code>
-                      <p className="text-xs text-muted-foreground mt-1">Server-Logs erfassen</p>
+                  </div>
+
+                  <div className="bg-purple-50 dark:bg-purple-950 p-3 rounded-md">
+                    <p className="text-sm font-medium mb-2">Über Plesk/Control Panel:</p>
+                    <div className="space-y-2">
+                      <div className="bg-muted/50 p-2 rounded">
+                        <code className="text-xs">node dist/bin/preflight.js check</code>
+                        <p className="text-xs text-muted-foreground mt-1">Direkt in Plesk Terminal</p>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Oder als NPM-Skript: <code className="bg-muted px-1">"preflight": "node dist/bin/preflight.js check"</code> 
+                        → dann in Plesk: Run Script → "preflight"
+                      </p>
                     </div>
                   </div>
                 </div>
