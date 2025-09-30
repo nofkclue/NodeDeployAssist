@@ -51,40 +51,86 @@ export async function registerRoutes(app: Express): Promise<Server> {
         aiReport: null,
       });
 
-      // Run diagnosis in background
+      // Run diagnosis in background - each check is independent and continues on error
       setImmediate(async () => {
+        const logs: string[] = [];
+        let systemInfo: any = null;
+        let networkTests: any = null;
+        let permissionChecks: any = null;
+        let dependencyAnalysis: any = null;
+
         try {
+          // System check
           broadcastProgress(report.id, 10, "Systemumgebung wird überprüft...");
-          
-          const systemInfo = await diagnosticsService.getSystemInfo();
-          await storage.updateDiagnosticReport(report.id, {
-            systemInfo: systemInfo as any,
-            progress: 25,
-          });
+          try {
+            systemInfo = await diagnosticsService.getSystemInfo();
+            await storage.updateDiagnosticReport(report.id, {
+              systemInfo: systemInfo as any,
+              progress: 25,
+            });
+            logs.push(`[SUCCESS] Systemumgebung erfolgreich geprüft`);
+          } catch (error) {
+            logs.push(`[ERROR] Systemcheck fehlgeschlagen: ${error}`);
+          }
+
+          // Network check
           broadcastProgress(report.id, 25, "Netzwerkverbindung wird getestet...");
+          try {
+            networkTests = await diagnosticsService.testNetworkConnectivity();
+            await storage.updateDiagnosticReport(report.id, {
+              networkTests: networkTests as any,
+              progress: 50,
+            });
+            logs.push(`[SUCCESS] Netzwerkverbindung erfolgreich getestet`);
+          } catch (error) {
+            logs.push(`[ERROR] Netzwerktest fehlgeschlagen: ${error}`);
+          }
 
-          const networkTests = await diagnosticsService.testNetworkConnectivity();
-          await storage.updateDiagnosticReport(report.id, {
-            networkTests: networkTests as any,
-            progress: 50,
-          });
+          // Permission check
           broadcastProgress(report.id, 50, "Dateiberechtigungen werden geprüft...");
+          try {
+            permissionChecks = await diagnosticsService.checkPermissions();
+            await storage.updateDiagnosticReport(report.id, {
+              permissionChecks: permissionChecks as any,
+              progress: 75,
+            });
+            logs.push(`[SUCCESS] Dateiberechtigungen erfolgreich geprüft`);
+          } catch (error) {
+            logs.push(`[ERROR] Berechtigungscheck fehlgeschlagen: ${error}`);
+          }
 
-          const permissionChecks = await diagnosticsService.checkPermissions();
-          await storage.updateDiagnosticReport(report.id, {
-            permissionChecks: permissionChecks as any,
-            progress: 75,
-          });
+          // Dependency check
           broadcastProgress(report.id, 75, "Abhängigkeiten werden analysiert...");
+          try {
+            dependencyAnalysis = await diagnosticsService.analyzeDependencies();
+            await storage.updateDiagnosticReport(report.id, {
+              dependencyAnalysis: dependencyAnalysis as any,
+              progress: 90,
+            });
+            logs.push(`[SUCCESS] Abhängigkeiten erfolgreich analysiert`);
+          } catch (error) {
+            logs.push(`[ERROR] Abhängigkeitsanalyse fehlgeschlagen: ${error}`);
+          }
 
-          const dependencyAnalysis = await diagnosticsService.analyzeDependencies();
-          
-          const fullResult = await diagnosticsService.runFullDiagnosis();
-          const aiReport = diagnosticsService.generateAIReport(fullResult);
+          // Generate AI report with whatever data we have
+          broadcastProgress(report.id, 95, "Bericht wird erstellt...");
+          let aiReport = "Diagnose teilweise abgeschlossen.";
+          try {
+            const fullResult = {
+              systemInfo: systemInfo || {},
+              networkTests: networkTests || {},
+              permissionChecks: permissionChecks || {},
+              dependencyAnalysis: dependencyAnalysis || {},
+              logs
+            };
+            aiReport = diagnosticsService.generateAIReport(fullResult);
+          } catch (error) {
+            logs.push(`[ERROR] Bericht-Erstellung fehlgeschlagen: ${error}`);
+          }
 
+          // Update final report
           await storage.updateDiagnosticReport(report.id, {
-            dependencyAnalysis: dependencyAnalysis as any,
-            logs: fullResult.logs.join("\n"),
+            logs: logs.join("\n"),
             aiReport,
             status: "completed",
             progress: 100,
@@ -94,9 +140,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } catch (error) {
           await storage.updateDiagnosticReport(report.id, {
             status: "failed",
-            logs: `Error: ${error}`,
+            logs: logs.concat([`[FATAL ERROR] ${error}`]).join("\n"),
           });
-          broadcastProgress(report.id, 100, `Fehler: ${error}`);
+          broadcastProgress(report.id, 100, `Kritischer Fehler: ${error}`);
         }
       });
 

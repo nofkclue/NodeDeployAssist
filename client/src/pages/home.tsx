@@ -278,28 +278,28 @@ export default function Home() {
             {currentStep === "system" && (
               <SystemCheck 
                 reportId={currentReportId} 
-                data={currentReport?.systemInfo || null} 
+                data={currentReport?.systemInfo ?? null} 
               />
             )}
             
             {currentStep === "network" && (
               <NetworkCheck 
                 reportId={currentReportId} 
-                data={currentReport?.networkTests || null} 
+                data={currentReport?.networkTests ?? null} 
               />
             )}
             
             {currentStep === "permissions" && (
               <PermissionsCheck 
                 reportId={currentReportId} 
-                data={currentReport?.permissionChecks || null} 
+                data={currentReport?.permissionChecks ?? null} 
               />
             )}
             
             {currentStep === "dependencies" && (
               <DependenciesCheck 
                 reportId={currentReportId} 
-                data={currentReport?.dependencyAnalysis || null} 
+                data={currentReport?.dependencyAnalysis ?? null} 
               />
             )}
             

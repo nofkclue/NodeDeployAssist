@@ -13,7 +13,15 @@ export class DiagnosticsService {
   async getSystemInfo(): Promise<SystemInfo> {
     try {
       const nodeVersion = process.version;
-      const npmVersion = execSync("npm --version", { encoding: "utf8" }).trim();
+      
+      // Try to get npm version, but don't fail if it's not available
+      let npmVersion = "nicht verfügbar";
+      try {
+        npmVersion = execSync("npm --version", { encoding: "utf8" }).trim();
+      } catch (error) {
+        npmVersion = `Fehler: npm nicht gefunden (${error instanceof Error ? error.message : String(error)})`;
+      }
+      
       const osInfo = os.type() + " " + os.release();
       const architecture = os.arch();
       const cpuCores = os.cpus().length;
@@ -58,7 +66,24 @@ export class DiagnosticsService {
         envVars,
       };
     } catch (error) {
-      throw new Error(`Failed to get system info: ${error}`);
+      // Return partial info even on error
+      return {
+        nodeVersion: process.version,
+        npmVersion: `Fehler: ${error instanceof Error ? error.message : String(error)}`,
+        os: os.type() + " " + os.release(),
+        architecture: os.arch(),
+        cpuCores: os.cpus().length,
+        totalMemory: Math.round(os.totalmem() / (1024 * 1024 * 1024) * 100) / 100,
+        freeMemory: Math.round(os.freemem() / (1024 * 1024 * 1024) * 100) / 100,
+        diskTotal: 0,
+        diskUsed: 0,
+        diskAvailable: 0,
+        envVars: {
+          NODE_ENV: process.env.NODE_ENV || "undefined",
+          PATH: "Fehler beim Auslesen",
+          PORT: process.env.PORT || "undefined",
+        },
+      };
     }
   }
 
