@@ -53,7 +53,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Run diagnosis in background - each check is independent and continues on error
       setImmediate(async () => {
-        console.log('[DIAGNOSIS] Starting background diagnosis for report:', report.id);
         const logs: string[] = [];
         let systemInfo: any = null;
         let networkTests: any = null;
@@ -62,7 +61,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         try {
           // System check
-          console.log('[DIAGNOSIS] Broadcasting progress: 10%');
           broadcastProgress(report.id, 10, "Systemumgebung wird überprüft...");
           await storage.updateDiagnosticReport(report.id, { progress: 10 });
           try {

@@ -9,7 +9,7 @@ import type { SystemInfo } from "@shared/schema";
 
 interface SystemCheckProps {
   reportId: string | null;
-  data: SystemInfo | null;
+  data: SystemInfo | null | undefined;
 }
 
 export default function SystemCheck({ reportId, data }: SystemCheckProps) {

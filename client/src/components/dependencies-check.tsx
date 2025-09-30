@@ -8,7 +8,7 @@ import type { DependencyAnalysis } from "@shared/schema";
 
 interface DependenciesCheckProps {
   reportId: string | null;
-  data: DependencyAnalysis | null;
+  data: DependencyAnalysis | null | undefined;
 }
 
 export default function DependenciesCheck({ reportId, data }: DependenciesCheckProps) {

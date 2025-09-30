@@ -8,7 +8,7 @@ import type { NetworkTest } from "@shared/schema";
 
 interface NetworkCheckProps {
   reportId: string | null;
-  data: NetworkTest | null;
+  data: NetworkTest | null | undefined;
 }
 
 export default function NetworkCheck({ reportId, data }: NetworkCheckProps) {

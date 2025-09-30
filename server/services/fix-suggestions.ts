@@ -52,7 +52,7 @@ export class FixSuggestionsService {
       }
     }
 
-    // Port conflict fixes
+    // Port conflict fixes - information only, no auto-execution for safety
     const networkTests = report.networkTests as NetworkTest | null;
     if (networkTests?.portTests) {
       const busyPorts = networkTests.portTests.filter(test => !test.available);
@@ -61,10 +61,10 @@ export class FixSuggestionsService {
           id: `fix-port-${port.port}`,
           category: 'configuration',
           title: `Port ${port.port} Konflikt lösen`,
-          description: `Port ${port.port} ist bereits belegt${port.pid ? ` von Prozess ${port.pid}` : ''}.`,
+          description: `Port ${port.port} ist bereits belegt${port.pid ? ` von Prozess ${port.pid}. Beenden Sie den Prozess manuell mit: kill ${port.pid}` : ''}.`,
           severity: 'high',
-          command: port.pid ? `kill ${port.pid}` : undefined,
-          isExecutable: !!port.pid,
+          command: undefined,  // SECURITY: Never auto-execute kill commands
+          isExecutable: false,
           estimatedTime: '10 Sekunden',
           impact: 'Gibt Port für Ihre Anwendung frei'
         });
@@ -105,7 +105,7 @@ export class FixSuggestionsService {
       }
     }
 
-    // File permission fixes
+    // File permission fixes - information only, no auto-execution for safety
     const permissionChecks = report.permissionChecks as PermissionCheck | null;
     if (permissionChecks?.issues) {
       const criticalIssues = permissionChecks.issues.filter(issue => issue.type !== 'success');
@@ -115,10 +115,10 @@ export class FixSuggestionsService {
             id: `fix-permission-${Math.random().toString(36).substring(7)}`,
             category: 'configuration',
             title: 'Dateiberechtigungen korrigieren',
-            description: issue.message,
+            description: `${issue.message}. Führen Sie manuell aus: ${issue.solution}`,
             severity: 'high',
-            command: issue.solution,
-            isExecutable: true,
+            command: undefined,  // SECURITY: Never auto-execute chmod commands
+            isExecutable: false,
             estimatedTime: '5 Sekunden',
             impact: 'Stellt korrekte Dateiberechtigungen sicher'
           });
@@ -157,15 +157,13 @@ export class FixSuggestionsService {
       };
     }
 
-    // Security: Validate and whitelist allowed commands
+    // Security: STRICT whitelist of allowed commands
+    // Only allow safe NPM commands with validated package names
     const allowedCommands = [
-      /^npm update [a-zA-Z0-9@/-]+$/,
-      /^npm install [a-zA-Z0-9@./-]+$/,
+      /^npm update [a-zA-Z0-9@_-]+$/,
+      /^npm install [a-zA-Z0-9@._-]+@[0-9]+\.[0-9]+\.[0-9]+$/,
       /^npm cache clean --force$/,
-      /^npm audit fix$/,
-      /^npm audit fix --force$/,
-      /^chmod [0-7]{3} [a-zA-Z0-9./\-_]+$/,
-      /^kill [0-9]+$/
+      /^npm audit fix$/
     ];
 
     const isCommandAllowed = allowedCommands.some(pattern => pattern.test(suggestion.command!));
@@ -174,7 +172,7 @@ export class FixSuggestionsService {
       return {
         success: false,
         output: '',
-        error: 'Dieser Befehl ist aus Sicherheitsgründen nicht erlaubt',
+        error: 'Dieser Befehl ist aus Sicherheitsgründen nicht erlaubt. Nur sichere NPM-Befehle sind erlaubt.',
         duration: 0
       };
     }

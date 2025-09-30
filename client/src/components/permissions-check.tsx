@@ -8,7 +8,7 @@ import type { PermissionCheck } from "@shared/schema";
 
 interface PermissionsCheckProps {
   reportId: string | null;
-  data: PermissionCheck | null;
+  data: PermissionCheck | null | undefined;
 }
 
 export default function PermissionsCheck({ reportId, data }: PermissionsCheckProps) {
