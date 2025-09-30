@@ -3,9 +3,10 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { apiRequest } from "@/lib/queryClient";
 import type { DiagnosticReport } from "@shared/schema";
-import { Server, Download, Play, RefreshCw, BookOpen } from "lucide-react";
+import { Server, Download, Play, RefreshCw, BookOpen, AlertCircle, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import SidebarNav from "@/components/sidebar-nav";
 import SystemCheck from "@/components/system-check";
 import NetworkCheck from "@/components/network-check";
@@ -22,6 +23,12 @@ export default function Home() {
   const [progress, setProgress] = useState(0);
   const [progressMessage, setProgressMessage] = useState("");
   const [showGettingStarted, setShowGettingStarted] = useState(false);
+  const [errorDialog, setErrorDialog] = useState<{ open: boolean; title: string; message: string }>({ 
+    open: false, 
+    title: "", 
+    message: "" 
+  });
+  const [copied, setCopied] = useState(false);
   const { toast } = useToast();
 
   // WebSocket connection for real-time updates
@@ -67,10 +74,11 @@ export default function Home() {
       });
     },
     onError: (error) => {
-      toast({
-        title: "Fehler",
-        description: `Diagnose konnte nicht gestartet werden: ${error}`,
-        variant: "destructive",
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      setErrorDialog({
+        open: true,
+        title: "Fehler beim Starten der Diagnose",
+        message: `Die Diagnose konnte nicht gestartet werden.\n\nFehlermeldung:\n${errorMessage}\n\nBitte überprüfen Sie die Verbindung und versuchen Sie es erneut.`
       });
     },
   });
@@ -88,6 +96,21 @@ export default function Home() {
 
   const handleStepChange = (step: string) => {
     setCurrentStep(step);
+  };
+
+  const copyErrorToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(errorDialog.message);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
+
+  const closeErrorDialog = () => {
+    setErrorDialog({ open: false, title: "", message: "" });
+    setCopied(false);
   };
 
   return (
@@ -209,6 +232,54 @@ export default function Home() {
         open={showGettingStarted} 
         onOpenChange={setShowGettingStarted} 
       />
+
+      {/* Error Dialog */}
+      <AlertDialog open={errorDialog.open} onOpenChange={closeErrorDialog}>
+        <AlertDialogContent className="max-w-2xl" data-testid="dialog-error">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-destructive" data-testid="title-error">
+              <AlertCircle className="w-5 h-5" />
+              {errorDialog.title}
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-4">
+                <div className="relative">
+                  <pre className="bg-muted p-4 rounded-md text-sm whitespace-pre-wrap font-mono border border-border max-h-96 overflow-y-auto" data-testid="text-error-message">
+                    {errorDialog.message}
+                  </pre>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="absolute top-2 right-2"
+                    onClick={copyErrorToClipboard}
+                    data-testid="button-copy-error"
+                  >
+                    {copied ? (
+                      <>
+                        <Check className="w-4 h-4 mr-2" />
+                        Kopiert
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-4 h-4 mr-2" />
+                        Kopieren
+                      </>
+                    )}
+                  </Button>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Sie können die Fehlermeldung kopieren und an den Support senden oder zur Fehlersuche verwenden.
+                </p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <Button onClick={closeErrorDialog} data-testid="button-close-error">
+              Schließen
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
