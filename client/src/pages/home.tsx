@@ -35,24 +35,40 @@ export default function Home() {
   // WebSocket connection for real-time updates - stable connection, not dependent on reportId
   useEffect(() => {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const ws = new WebSocket(`${protocol}//${window.location.host}/ws/diagnostics`);
+    const wsUrl = `${protocol}//${window.location.host}/ws/diagnostics`;
     
     const addLog = (message: string, type: 'info' | 'success' | 'error' | 'warning' = 'info') => {
       const timestamp = new Date().toLocaleTimeString('de-DE');
       setLogs(prev => [...prev.slice(-99), { timestamp, message, type }]);
     };
 
+    // Log Verbindungsversuch mit detaillierten Informationen
+    addLog(`🔌 Versuche WebSocket-Verbindung zu: ${wsUrl}`, 'info');
+    addLog(`📍 Protocol: ${protocol}, Host: ${window.location.host}, Path: /ws/diagnostics`, 'info');
+    
+    const ws = new WebSocket(wsUrl);
+
     ws.onopen = () => {
-      addLog('WebSocket-Verbindung hergestellt', 'success');
+      addLog('✅ WebSocket-Verbindung erfolgreich hergestellt', 'success');
+      addLog(`📊 WebSocket ReadyState: ${ws.readyState} (OPEN)`, 'info');
     };
 
-    ws.onclose = () => {
-      addLog('WebSocket-Verbindung geschlossen', 'warning');
+    ws.onclose = (event) => {
+      addLog(`⚠️ WebSocket geschlossen - Code: ${event.code}, Reason: ${event.reason || 'keine Angabe'}`, 'warning');
+      addLog(`📊 Clean close: ${event.wasClean ? 'Ja' : 'Nein'}`, 'warning');
     };
 
     ws.onerror = (error) => {
-      addLog('WebSocket-Fehler aufgetreten', 'error');
-      console.error('WebSocket error:', error);
+      addLog(`❌ WebSocket-Fehler - URL war: ${wsUrl}`, 'error');
+      addLog(`📊 ReadyState beim Fehler: ${ws.readyState} (0=CONNECTING, 1=OPEN, 2=CLOSING, 3=CLOSED)`, 'error');
+      console.error('WebSocket Fehlerdetails:', error);
+      console.error('WebSocket URL:', wsUrl);
+      console.error('Browser Info:', { 
+        protocol: window.location.protocol,
+        host: window.location.host,
+        hostname: window.location.hostname,
+        port: window.location.port 
+      });
     };
     
     ws.onmessage = (event) => {
