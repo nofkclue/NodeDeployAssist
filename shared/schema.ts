@@ -117,3 +117,53 @@ export type FixExecutionResult = {
   error?: string;
   duration: number;
 };
+
+// CLI Preflight Check Types
+export type CheckCategory = 
+  | 'system'
+  | 'network' 
+  | 'filesystem'
+  | 'dependencies'
+  | 'build'
+  | 'platform'
+  | 'deployment';
+
+export type CheckSeverity = 
+  | 'info'
+  | 'warning'
+  | 'error'
+  | 'critical';
+
+export type CheckResult = {
+  id: string;
+  category: CheckCategory;
+  severity: CheckSeverity;
+  title: string;
+  status: 'pass' | 'fail' | 'warning' | 'skipped';
+  message: string;
+  details?: Record<string, any>;
+  remediation?: string;
+  command?: string;
+  timestamp: Date;
+};
+
+export type HostingEnvironment = {
+  type: 'passenger' | 'pm2' | 'systemd' | 'docker' | 'generic';
+  detected: boolean;
+  version?: string;
+  configPath?: string;
+  details?: Record<string, any>;
+};
+
+export type PreflightSummary = {
+  timestamp: Date;
+  environment: HostingEnvironment;
+  checks: CheckResult[];
+  nodeVersion: string;
+  npmVersion: string;
+  buildStatus: 'not_built' | 'built' | 'partial' | 'error';
+  criticalIssues: number;
+  errors: number;
+  warnings: number;
+  passed: number;
+};
