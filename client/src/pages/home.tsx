@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { apiRequest } from "@/lib/queryClient";
 import type { DiagnosticReport } from "@shared/schema";
-import { Server, Download, Play, RefreshCw, BookOpen, AlertCircle, Copy, Check } from "lucide-react";
+import { Server, Download, Play, RefreshCw, BookOpen, AlertCircle, Copy, Check, Terminal, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import SidebarNav from "@/components/sidebar-nav";
@@ -28,17 +28,38 @@ export default function Home() {
     message: "" 
   });
   const [copied, setCopied] = useState(false);
+  const [logs, setLogs] = useState<Array<{ timestamp: string; message: string; type: 'info' | 'success' | 'error' | 'warning' }>>([]);
+  const [showLogs, setShowLogs] = useState(true);
+  const logEndRef = useRef<HTMLDivElement>(null);
 
   // WebSocket connection for real-time updates
   useEffect(() => {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const ws = new WebSocket(`${protocol}//${window.location.host}/ws/diagnostics`);
     
+    const addLog = (message: string, type: 'info' | 'success' | 'error' | 'warning' = 'info') => {
+      const timestamp = new Date().toLocaleTimeString('de-DE');
+      setLogs(prev => [...prev.slice(-99), { timestamp, message, type }]);
+    };
+
+    ws.onopen = () => {
+      addLog('WebSocket-Verbindung hergestellt', 'success');
+    };
+
+    ws.onclose = () => {
+      addLog('WebSocket-Verbindung geschlossen', 'warning');
+    };
+
+    ws.onerror = () => {
+      addLog('WebSocket-Fehler aufgetreten', 'error');
+    };
+    
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
       if (data.type === 'progress' && data.reportId === currentReportId) {
         setProgress(data.progress);
         setProgressMessage(data.message);
+        addLog(`${data.message} (${Math.round(data.progress)}%)`, 'info');
         
         // Invalidate queries to refresh data
         queryClient.invalidateQueries({ queryKey: ['/api/diagnosis', data.reportId] });
@@ -66,6 +87,11 @@ export default function Home() {
       setCurrentReportId(data.id);
       setProgress(0);
       setProgressMessage("Diagnose gestartet...");
+      setLogs(prev => [...prev, { 
+        timestamp: new Date().toLocaleTimeString('de-DE'), 
+        message: `Neue Diagnose gestartet (ID: ${data.id.substring(0, 8)}...)`, 
+        type: 'success' 
+      }]);
     },
     onError: (error) => {
       const errorMessage = error instanceof Error ? error.message : String(error);
@@ -101,6 +127,13 @@ export default function Home() {
     setErrorDialog({ open: false, title: "", message: "" });
     setCopied(false);
   };
+
+  // Auto-scroll logs to bottom
+  useEffect(() => {
+    if (showLogs && logEndRef.current) {
+      logEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [logs, showLogs]);
 
   return (
     <div className="min-h-screen bg-background" data-testid="main-container">
@@ -152,6 +185,47 @@ export default function Home() {
           </div>
         </div>
       </header>
+
+      {/* Live Log Terminal */}
+      {logs.length > 0 && (
+        <div className="bg-card border-b border-border">
+          <div className="container mx-auto px-6">
+            <button
+              onClick={() => setShowLogs(!showLogs)}
+              className="w-full flex items-center justify-between py-3 hover:bg-accent/50 transition-colors"
+              data-testid="button-toggle-logs"
+            >
+              <div className="flex items-center space-x-2">
+                <Terminal className="w-4 h-4 text-muted-foreground" />
+                <span className="text-sm font-medium">Live-Log</span>
+                <span className="text-xs text-muted-foreground">({logs.length} Einträge)</span>
+              </div>
+              {showLogs ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            </button>
+            
+            {showLogs && (
+              <div className="pb-4">
+                <div className="bg-black/95 rounded-lg p-4 font-mono text-xs max-h-48 overflow-y-auto" data-testid="log-terminal">
+                  {logs.map((log, idx) => (
+                    <div key={idx} className="mb-1">
+                      <span className="text-gray-500">[{log.timestamp}]</span>{' '}
+                      <span className={
+                        log.type === 'success' ? 'text-green-400' :
+                        log.type === 'error' ? 'text-red-400' :
+                        log.type === 'warning' ? 'text-yellow-400' :
+                        'text-blue-400'
+                      }>
+                        {log.message}
+                      </span>
+                    </div>
+                  ))}
+                  <div ref={logEndRef} />
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Main Content */}
       <div className="container mx-auto px-6 py-8">
