@@ -214,8 +214,8 @@ class PreflightCLI {
     }
 
     console.log(`\n${'─'.repeat(80)}\n`);
-    console.log(`💡 Führen Sie ${COLORS.cyan}npm run preflight report${COLORS.reset} für einen detaillierten Bericht aus`);
-    console.log(`💡 Führen Sie ${COLORS.cyan}npm run preflight capture${COLORS.reset} für Server-Logs aus\n`);
+    console.log(`💡 Führen Sie ${COLORS.cyan}npm run preflight:report${COLORS.reset} für einen detaillierten Bericht aus`);
+    console.log(`💡 Führen Sie ${COLORS.cyan}npm run preflight:capture${COLORS.reset} für Server-Logs aus\n`);
   }
 
   private printDetailedReport(summary: PreflightSummary) {
