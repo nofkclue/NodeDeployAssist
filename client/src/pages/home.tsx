@@ -32,7 +32,7 @@ export default function Home() {
   const [showLogs, setShowLogs] = useState(true);
   const logEndRef = useRef<HTMLDivElement>(null);
 
-  // WebSocket connection for real-time updates
+  // WebSocket connection for real-time updates - stable connection, not dependent on reportId
   useEffect(() => {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const ws = new WebSocket(`${protocol}//${window.location.host}/ws/diagnostics`);
@@ -50,16 +50,21 @@ export default function Home() {
       addLog('WebSocket-Verbindung geschlossen', 'warning');
     };
 
-    ws.onerror = () => {
+    ws.onerror = (error) => {
       addLog('WebSocket-Fehler aufgetreten', 'error');
+      console.error('WebSocket error:', error);
     };
     
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      if (data.type === 'progress' && data.reportId === currentReportId) {
-        setProgress(data.progress);
-        setProgressMessage(data.message);
+      if (data.type === 'progress') {
         addLog(`${data.message} (${Math.round(data.progress)}%)`, 'info');
+        
+        // Update progress for the current report
+        if (data.reportId === currentReportId) {
+          setProgress(data.progress);
+          setProgressMessage(data.message);
+        }
         
         // Invalidate queries to refresh data
         queryClient.invalidateQueries({ queryKey: ['/api/diagnosis', data.reportId] });
@@ -67,9 +72,10 @@ export default function Home() {
     };
 
     return () => {
+      addLog('Komponente wird unmounted - schließe WebSocket', 'info');
       ws.close();
     };
-  }, [currentReportId]);
+  }, []); // Empty dependency array - only connect once!
 
   // Get current diagnosis report
   const { data: currentReport } = useQuery<DiagnosticReport>({
