@@ -9,6 +9,11 @@
     "start": "NODE_ENV=production node dist/index.js",
     "check": "tsc",
     "db:push": "drizzle-kit push"
+    "build:cli": "node_modules/.bin/esbuild bin/preflight.ts --bundle --platform=node --format=esm --outfile=dist/bin/preflight.js --packages=external",
+    "preflight": "node dist/bin/preflight.js check",
+    "preflight:report": "node dist/bin/preflight.js report",
+    "preflight:detect": "node dist/bin/preflight.js detect-host",
+    "preflight:capture": "node dist/bin/preflight.js capture"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
