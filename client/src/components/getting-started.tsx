@@ -96,12 +96,12 @@ bash build-cli.sh`}</code>
                   </div>
 
                   <div className="bg-purple-50 dark:bg-purple-950 p-3 rounded-md">
-                    <p className="text-sm font-medium mb-2">Option B: Über Plesk/Control Panel</p>
-                    <p className="text-sm text-muted-foreground mb-2">Wenn Node/NPM nicht per SSH verfügbar:</p>
+                    <p className="text-sm font-medium mb-2">Option B: Über NPM Terminal (Plesk)</p>
+                    <p className="text-sm text-muted-foreground mb-2">Wenn Sie nur ein NPM Terminal haben (npm ist voreingestellt):</p>
                     <ol className="text-xs text-muted-foreground space-y-1 list-decimal list-inside">
-                      <li>In Plesk unter "Node.js" → "NPM Install"</li>
-                      <li>Fügen Sie in package.json hinzu: <code className="bg-muted px-1">"build:cli": "node_modules/.bin/esbuild bin/preflight.ts --bundle --platform=node --format=esm --outfile=dist/bin/preflight.js --packages=external"</code></li>
-                      <li>In Plesk: Run Script → "build:cli"</li>
+                      <li>Fügen Sie in package.json hinzu: <code className="bg-muted px-1">"build:cli": "node_modules/.bin/esbuild ..."</code></li>
+                      <li>Im NPM Terminal eingeben: <code className="bg-muted px-1">install</code> (für Dependencies)</li>
+                      <li>Dann: <code className="bg-muted px-1">run build:cli</code></li>
                     </ol>
                   </div>
                 </div>
@@ -124,16 +124,19 @@ bash build-cli.sh`}</code>
                   </div>
 
                   <div className="bg-purple-50 dark:bg-purple-950 p-3 rounded-md">
-                    <p className="text-sm font-medium mb-2">Über Plesk/Control Panel:</p>
+                    <p className="text-sm font-medium mb-2">Über NPM Terminal (Plesk):</p>
                     <div className="space-y-2">
-                      <div className="bg-muted/50 p-2 rounded">
-                        <code className="text-xs">node dist/bin/preflight.js check</code>
-                        <p className="text-xs text-muted-foreground mt-1">Direkt in Plesk Terminal</p>
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        Oder als NPM-Skript: <code className="bg-muted px-1">"preflight": "node dist/bin/preflight.js check"</code> 
-                        → dann in Plesk: Run Script → "preflight"
+                      <p className="text-xs text-muted-foreground mb-2">
+                        NPM-Skript in package.json: <code className="bg-muted px-1">"preflight": "node dist/bin/preflight.js check"</code>
                       </p>
+                      <div className="bg-muted/50 p-2 rounded">
+                        <code className="text-xs">run preflight</code>
+                        <p className="text-xs text-muted-foreground mt-1">Im NPM Terminal eingeben</p>
+                      </div>
+                      <div className="bg-muted/50 p-2 rounded">
+                        <code className="text-xs">run preflight:report</code>
+                        <p className="text-xs text-muted-foreground mt-1">Detaillierter Bericht</p>
+                      </div>
                     </div>
                   </div>
                 </div>

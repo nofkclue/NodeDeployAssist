@@ -14,28 +14,32 @@ npm install
 bash build-cli.sh
 ```
 
-### Option B: Über Plesk/Control Panel (ohne SSH)
+### Option B: Über NPM Terminal (Plesk/Control Panel)
 
-Wenn Node/NPM nicht per SSH verfügbar sind:
+Wenn Sie nur ein NPM Terminal haben (wo `npm` bereits voreingestellt ist):
 
-**1. Dependencies installieren:**
-- In Plesk unter "Node.js" → "NPM Install"
-- Oder Run Script → `install`
-
-**2. CLI bauen:**
-- Fügen Sie in `package.json` unter `"scripts"` hinzu:
-  ```json
-  "build:cli": "node_modules/.bin/esbuild bin/preflight.ts --bundle --platform=node --format=esm --outfile=dist/bin/preflight.js --packages=external"
-  ```
-- In Plesk: Run Script → `build:cli`
-
-**3. Diagnose ausführen:**
-- Fügen Sie in `package.json` unter `"scripts"` hinzu:
-  ```json
+**1. NPM-Skripte zur package.json hinzufügen:**
+```json
+"scripts": {
+  "build:cli": "node_modules/.bin/esbuild bin/preflight.ts --bundle --platform=node --format=esm --outfile=dist/bin/preflight.js --packages=external",
   "preflight": "node dist/bin/preflight.js check",
-  "preflight:report": "node dist/bin/preflight.js report"
-  ```
-- In Plesk: Run Script → `preflight`
+  "preflight:report": "node dist/bin/preflight.js report",
+  "preflight:detect": "node dist/bin/preflight.js detect-host",
+  "preflight:capture": "node dist/bin/preflight.js capture"
+}
+```
+
+**2. Im NPM Terminal ausführen:**
+```bash
+# Dependencies installieren
+install
+
+# CLI bauen
+run build:cli
+
+# Diagnose durchführen
+run preflight
+```
 
 ## Verwendung
 
@@ -59,27 +63,24 @@ Wenn Node/NPM nicht per SSH verfügbar sind:
 ./preflight.sh check --json
 ```
 
-**Option B: Über Plesk/Control Panel (ohne SSH)**
+**Option B: Über NPM Terminal (Plesk/Control Panel)**
 
-Wenn Node nicht per SSH verfügbar ist, führen Sie direkt aus:
+Im NPM Terminal (wo `npm` voreingestellt ist):
 ```bash
-# In Plesk Terminal oder als NPM-Skript
-node dist/bin/preflight.js check
-node dist/bin/preflight.js report
-node dist/bin/preflight.js detect-host
-node dist/bin/preflight.js capture
+# Schnelle Diagnose
+run preflight
+
+# Detaillierter Bericht  
+run preflight:report
+
+# Hosting-Umgebung erkennen
+run preflight:detect
+
+# Server-Logs erfassen
+run preflight:capture
 ```
 
-Oder fügen Sie NPM-Skripte in `package.json` hinzu:
-```json
-"scripts": {
-  "preflight": "node dist/bin/preflight.js check",
-  "preflight:report": "node dist/bin/preflight.js report",
-  "preflight:detect": "node dist/bin/preflight.js detect-host",
-  "preflight:capture": "node dist/bin/preflight.js capture"
-}
-```
-Dann in Plesk: Run Script → `preflight`
+**Voraussetzung:** NPM-Skripte müssen in `package.json` definiert sein (siehe Installation oben)
 
 ### In der Entwicklung (mit TypeScript):
 

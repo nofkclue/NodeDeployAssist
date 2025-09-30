@@ -16,18 +16,15 @@ cd /pfad/zu/ihrer/app
 npm install
 ```
 
-**Option B: Über Plesk/Control Panel (wenn SSH nicht verfügbar)**
+**Option B: Über Plesk/Control Panel (NPM Terminal)**
 
-Wenn Node/NPM nicht per SSH ausführbar sind:
+Wenn Sie nur ein NPM Terminal haben (wo `npm` bereits voreingestellt ist):
 
-1. **In Plesk/Control Panel:**
-   - Gehen Sie zu "Node.js" oder "Applications"
-   - Wählen Sie Ihr Anwendungsverzeichnis
-   - Klicken Sie auf "NPM Install" oder führen Sie unter "Run Script" aus: `install`
-   
-2. **Alternative über Plesk File Manager:**
-   - Öffnen Sie die Terminal/Konsole im File Manager
-   - Führen Sie dort aus: `npm install`
+1. **Im NPM Terminal eingeben:**
+   ```
+   install
+   ```
+   (Entspricht: npm install)
 
 ### 3. Diagnose-Tool ausführen (WICHTIG!)
 
@@ -42,29 +39,27 @@ bash build-cli.sh
 ./preflight.sh check
 ```
 
-**Option B: Über Plesk/Control Panel**
+**Option B: Über NPM Terminal (Plesk/Control Panel)**
 
-Wenn Node/NPM nicht per SSH verfügbar:
+Wenn Sie nur ein NPM Terminal haben:
 
-1. **Build-Skript als NPM-Skript:**
-   - In Plesk unter "Node.js" → "Run Script"
-   - Führen Sie aus: `build:cli`
-   - Oder: Gehen Sie zu "Package.json" und fügen Sie hinzu:
-     ```json
-     "scripts": {
-       "build:cli": "bash build-cli.sh || node_modules/.bin/esbuild bin/preflight.ts --bundle --platform=node --format=esm --outfile=dist/bin/preflight.js --packages=external"
-     }
-     ```
+1. **NPM-Skripte zur package.json hinzufügen:**
+   ```json
+   "scripts": {
+     "build:cli": "node_modules/.bin/esbuild bin/preflight.ts --bundle --platform=node --format=esm --outfile=dist/bin/preflight.js --packages=external",
+     "preflight": "node dist/bin/preflight.js check"
+   }
+   ```
 
-2. **Diagnose ausführen:**
-   - Über Plesk Terminal: `node dist/bin/preflight.js check`
-   - Oder als NPM-Skript in package.json:
-     ```json
-     "scripts": {
-       "preflight": "node dist/bin/preflight.js check"
-     }
-     ```
-   - Dann in Plesk: Run Script → `preflight`
+2. **Im NPM Terminal ausführen:**
+   ```
+   run build:cli
+   ```
+   
+3. **Diagnose ausführen:**
+   ```
+   run preflight
+   ```
 
 Das Tool zeigt Ihnen:
 - ✅ Welche System-Anforderungen erfüllt sind
@@ -79,10 +74,11 @@ Das Tool zeigt Ihnen:
 npm run build
 ```
 
-**Option B: Über Plesk/Control Panel**
-- In Plesk unter "Node.js" → "Run Script"
-- Wählen Sie: `build`
-- Oder im Terminal: `npm run build`
+**Option B: Über NPM Terminal**
+- Im NPM Terminal eingeben:
+  ```
+  run build
+  ```
 
 Dies erstellt:
 - `dist/index.js` - Server-Bundle
