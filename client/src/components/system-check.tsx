@@ -92,9 +92,16 @@ export default function SystemCheck({ reportId, data }: SystemCheckProps) {
     },
     {
       title: "Festplattenspeicher",
-      value: `${data.diskAvailable} GB verfügbar`,
-      status: (data.diskAvailable < 2 ? "error" : "success") as 'error' | 'success',
-      message: data.diskAvailable < 2 ? "Weniger als 2GB verfügbar" : "Ausreichend Speicher"
+      value: data.diskTotal === 0 ? "Fehler beim Auslesen" : `${data.diskAvailable} GB verfügbar`,
+      status: (
+        data.diskTotal === 0 ? "error" :
+        data.diskAvailable < 2 ? "error" : 
+        "success"
+      ) as 'error' | 'success',
+      message: 
+        data.diskTotal === 0 ? "Speicherinformationen nicht verfügbar" :
+        data.diskAvailable < 2 ? "Weniger als 2GB verfügbar" : 
+        "Ausreichend Speicher"
     }
   ] : [];
 

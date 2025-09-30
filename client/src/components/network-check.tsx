@@ -108,7 +108,11 @@ export default function NetworkCheck({ reportId, data }: NetworkCheckProps) {
                   <Shield className="w-4 h-4 text-muted-foreground" />
                   <span className="text-sm">Firewall Status</span>
                 </div>
-                <span className="text-xs text-yellow-600">⚠ {data.firewallStatus}</span>
+                <span className={`text-xs ${
+                  data.firewallStatus === 'Aktiv' ? 'text-green-600' : 'text-yellow-600'
+                }`}>
+                  {data.firewallStatus === 'Aktiv' ? '✓' : '⚠'} {data.firewallStatus}
+                </span>
               </div>
             </div>
           </div>
