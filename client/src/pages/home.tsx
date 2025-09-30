@@ -80,21 +80,32 @@ export default function Home() {
   // Start new diagnosis mutation
   const startDiagnosis = useMutation({
     mutationFn: async () => {
+      setLogs(prev => [...prev, { 
+        timestamp: new Date().toLocaleTimeString('de-DE'), 
+        message: 'Sende POST /api/diagnosis...', 
+        type: 'info' 
+      }]);
       const response = await apiRequest("POST", "/api/diagnosis");
-      return response.json();
+      const data = await response.json();
+      setLogs(prev => [...prev, { 
+        timestamp: new Date().toLocaleTimeString('de-DE'), 
+        message: `Diagnose erstellt: ${data.id} - Warte auf Backend-Updates...`, 
+        type: 'success' 
+      }]);
+      return data;
     },
     onSuccess: (data) => {
       setCurrentReportId(data.id);
       setProgress(0);
       setProgressMessage("Diagnose gestartet...");
-      setLogs(prev => [...prev, { 
-        timestamp: new Date().toLocaleTimeString('de-DE'), 
-        message: `Neue Diagnose gestartet (ID: ${data.id.substring(0, 8)}...)`, 
-        type: 'success' 
-      }]);
     },
     onError: (error) => {
       const errorMessage = error instanceof Error ? error.message : String(error);
+      setLogs(prev => [...prev, { 
+        timestamp: new Date().toLocaleTimeString('de-DE'), 
+        message: `FEHLER: ${errorMessage}`, 
+        type: 'error' 
+      }]);
       setErrorDialog({
         open: true,
         title: "Fehler beim Starten der Diagnose",
