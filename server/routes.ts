@@ -62,6 +62,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         try {
           // System check
           broadcastProgress(report.id, 10, "Systemumgebung wird überprüft...");
+          await storage.updateDiagnosticReport(report.id, { progress: 10 });
           try {
             systemInfo = await diagnosticsService.getSystemInfo();
             await storage.updateDiagnosticReport(report.id, {
@@ -70,6 +71,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             });
             logs.push(`[SUCCESS] Systemumgebung erfolgreich geprüft`);
           } catch (error) {
+            await storage.updateDiagnosticReport(report.id, { progress: 25 });
             logs.push(`[ERROR] Systemcheck fehlgeschlagen: ${error}`);
           }
 
@@ -83,6 +85,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             });
             logs.push(`[SUCCESS] Netzwerkverbindung erfolgreich getestet`);
           } catch (error) {
+            await storage.updateDiagnosticReport(report.id, { progress: 50 });
             logs.push(`[ERROR] Netzwerktest fehlgeschlagen: ${error}`);
           }
 
@@ -96,6 +99,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             });
             logs.push(`[SUCCESS] Dateiberechtigungen erfolgreich geprüft`);
           } catch (error) {
+            await storage.updateDiagnosticReport(report.id, { progress: 75 });
             logs.push(`[ERROR] Berechtigungscheck fehlgeschlagen: ${error}`);
           }
 
@@ -109,11 +113,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
             });
             logs.push(`[SUCCESS] Abhängigkeiten erfolgreich analysiert`);
           } catch (error) {
+            await storage.updateDiagnosticReport(report.id, { progress: 90 });
             logs.push(`[ERROR] Abhängigkeitsanalyse fehlgeschlagen: ${error}`);
           }
 
           // Generate AI report with whatever data we have
           broadcastProgress(report.id, 95, "Bericht wird erstellt...");
+          await storage.updateDiagnosticReport(report.id, { progress: 95 });
           let aiReport = "Diagnose teilweise abgeschlossen.";
           try {
             const fullResult = {
