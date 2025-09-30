@@ -76,11 +76,9 @@ export default function Home() {
       if (data.type === 'progress') {
         addLog(`${data.message} (${Math.round(data.progress)}%)`, 'info');
         
-        // Update progress for the current report
-        if (data.reportId === currentReportId) {
-          setProgress(data.progress);
-          setProgressMessage(data.message);
-        }
+        // Always update progress (since we only run one diagnosis at a time)
+        setProgress(data.progress);
+        setProgressMessage(data.message);
         
         // Invalidate queries to refresh data
         queryClient.invalidateQueries({ queryKey: ['/api/diagnosis', data.reportId] });
