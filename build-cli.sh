@@ -3,7 +3,7 @@
 # Build the CLI tool for production use
 echo "🔨 Building CLI tool..."
 
-npx esbuild bin/preflight.ts --bundle --platform=node --format=esm --outfile=dist/bin/preflight.js --packages=external
+node_modules/.bin/esbuild bin/preflight.ts --bundle --platform=node --format=esm --outfile=dist/bin/preflight.js --packages=external
 
 if [ -f dist/bin/preflight.js ]; then
     echo "✅ CLI built successfully: dist/bin/preflight.js"
