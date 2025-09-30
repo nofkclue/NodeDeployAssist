@@ -3,7 +3,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { apiRequest } from "@/lib/queryClient";
 import type { DiagnosticReport } from "@shared/schema";
-import { Server, Download, Play, RefreshCw } from "lucide-react";
+import { Server, Download, Play, RefreshCw, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import SidebarNav from "@/components/sidebar-nav";
@@ -14,12 +14,14 @@ import DependenciesCheck from "@/components/dependencies-check";
 import LogsReport from "@/components/logs-report";
 import QuickActions from "@/components/quick-actions";
 import { FixSuggestions } from "@/components/fix-suggestions";
+import { GettingStarted } from "@/components/getting-started";
 
 export default function Home() {
   const [currentReportId, setCurrentReportId] = useState<string | null>(null);
   const [currentStep, setCurrentStep] = useState("system");
   const [progress, setProgress] = useState(0);
   const [progressMessage, setProgressMessage] = useState("");
+  const [showGettingStarted, setShowGettingStarted] = useState(false);
   const { toast } = useToast();
 
   // WebSocket connection for real-time updates
@@ -44,7 +46,7 @@ export default function Home() {
   }, [currentReportId]);
 
   // Get current diagnosis report
-  const { data: currentReport } = useQuery({
+  const { data: currentReport } = useQuery<DiagnosticReport>({
     queryKey: ['/api/diagnosis', currentReportId],
     enabled: !!currentReportId,
   });
@@ -104,6 +106,15 @@ export default function Home() {
               </div>
             </div>
             <div className="flex items-center space-x-3">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowGettingStarted(true)}
+                data-testid="button-getting-started"
+              >
+                <BookOpen className="w-4 h-4 mr-2" />
+                Anleitung
+              </Button>
               <Button
                 variant="secondary"
                 onClick={exportReport}
@@ -182,8 +193,8 @@ export default function Home() {
             {currentStep === "logs" && (
               <LogsReport 
                 reportId={currentReportId} 
-                logs={currentReport?.logs || null} 
-                aiReport={currentReport?.aiReport || null} 
+                logs={currentReport?.logs ?? null} 
+                aiReport={currentReport?.aiReport ?? null} 
               />
             )}
 
@@ -192,6 +203,12 @@ export default function Home() {
           </div>
         </div>
       </div>
+
+      {/* Getting Started Dialog */}
+      <GettingStarted 
+        open={showGettingStarted} 
+        onOpenChange={setShowGettingStarted} 
+      />
     </div>
   );
 }

@@ -6,12 +6,12 @@ Diese Anleitung hilft Ihnen, die Anwendung auf Ihrem Server (z.B. mit Phusion Pa
 
 ### 1. Dateien hochladen
 
-Laden Sie alle Projektdateien in Ihr Server-Verzeichnis hoch (z.B. `/node.210488.de/httpdocs/`)
+Laden Sie alle Projektdateien in Ihr Server-Verzeichnis hoch (z.B. `/var/www/your-app/` oder `/httpdocs/`)
 
 ### 2. Dependencies installieren
 
 ```bash
-cd /node.210488.de/httpdocs
+cd /pfad/zu/ihrer/app
 npm install
 ```
 
@@ -54,9 +54,9 @@ echo "import('./dist/index.js');" > app.js
 ```
 
 2. **Hosting-Panel Einstellungen:**
-   - Anwendungsstamm: `/node.210488.de/httpdocs`
+   - Anwendungsstamm: `/pfad/zu/ihrer/app` (z.B. `/httpdocs` oder `/var/www/app`)
    - Anwendungsstartdatei: `app.js`
-   - Node.js Version: >= 18 (empfohlen: 21.7.3)
+   - Node.js Version: >= 18
    - Anwendungsmodus: `production`
 
 3. **Umgebungsvariablen setzen:**
@@ -135,7 +135,7 @@ Vor dem Deployment:
 
 Nach dem Deployment:
 - [ ] Anwendung startet ohne Fehler
-- [ ] URL ist erreichbar: http://node.210488.de
+- [ ] URL ist erreichbar
 - [ ] Keine Fehler im Browser
 - [ ] WebSocket-Verbindung funktioniert
 
