@@ -5,7 +5,6 @@ import { apiRequest } from "@/lib/queryClient";
 import type { DiagnosticReport } from "@shared/schema";
 import { Server, Download, Play, RefreshCw, BookOpen, AlertCircle, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import SidebarNav from "@/components/sidebar-nav";
 import SystemCheck from "@/components/system-check";
@@ -29,7 +28,6 @@ export default function Home() {
     message: "" 
   });
   const [copied, setCopied] = useState(false);
-  const { toast } = useToast();
 
   // WebSocket connection for real-time updates
   useEffect(() => {
@@ -68,10 +66,6 @@ export default function Home() {
       setCurrentReportId(data.id);
       setProgress(0);
       setProgressMessage("Diagnose gestartet...");
-      toast({
-        title: "Diagnose gestartet",
-        description: "Die Systemdiagnose läuft. Fortschritt wird in Echtzeit angezeigt.",
-      });
     },
     onError: (error) => {
       const errorMessage = error instanceof Error ? error.message : String(error);
@@ -86,12 +80,7 @@ export default function Home() {
   // Export diagnostic report
   const exportReport = () => {
     if (!currentReportId) return;
-    
     window.open(`/api/diagnosis/${currentReportId}/export-logs`, '_blank');
-    toast({
-      title: "Export gestartet",
-      description: "Der Diagnosebericht wird heruntergeladen.",
-    });
   };
 
   const handleStepChange = (step: string) => {
